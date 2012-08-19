@@ -15,7 +15,7 @@
 
 	<!-- A universally unique application identifier. Must be unique across all AIR applications.
 	Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-	<id>PingPongSpinshot</id>
+	<id>com.hyperisk.PingPongSpinShot</id>
 
 	<!-- Used as the filename for the application. Required. -->
 	<filename>SpinshotMain</filename>
@@ -58,7 +58,7 @@
 		<!-- <transparent></transparent> -->
 
 		<!-- Whether the window is initially visible. Optional. Default false. -->
-		<!-- <visible></visible> -->
+		<visible>true</visible>
 
 		<!-- Whether the user can minimize the window. Optional. Default true. -->
 		<!-- <minimizable></minimizable> -->
@@ -93,9 +93,10 @@
 
         <!-- Whether the app will begin auto-orienting on launch. Optional. Mobile only. Default false -->
 
-		<autoOrients>false</autoOrients>
+        <autoOrients>false</autoOrients>
 
         <!-- Whether the app launches in full screen. Optional. Mobile only. Default false -->
+
         <fullScreen>false</fullScreen>
 
         <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
@@ -127,7 +128,7 @@
 		<image36x36></image36x36>
 		<image48x48></image48x48>
 		<image57x57></image57x57>
-		<image72x72>src/assets/icon_72.png</image72x72>
+		<image72x72>assets/icon_72.png</image72x72>
 		<image114x114></image114x114>
 		<image128x128></image128x128>
 	</icon>
