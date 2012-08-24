@@ -17,11 +17,15 @@ package renderer
 		public function EnvRenderer()
 		{
 			background_ = new Sprite();
+			tableShadow_ = new Sprite();
+			table_ = new Sprite();
+		}
+		
+		public function show():void {
 			StageUtil.getSingleton().addToStage(background_);
 			drawEmptyBackground(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
-			tableShadow_ = new Sprite();
+			
 			StageUtil.getSingleton().addToStage(tableShadow_);
-			table_ = new Sprite();
 			StageUtil.getSingleton().addToStage(table_);
 			drawTable(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
 		}

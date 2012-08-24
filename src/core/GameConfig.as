@@ -9,6 +9,7 @@ package core
 		
 		// un-configurable values (compile time fixed)
 		static public const DEBUGGING_ENABLED:Boolean = true;
+		static public const MAIN_MENU_AUTO_SELECT:Boolean = true;
 		
 		// user configurable values (to do)
 		static public var TABLE_HEIGHT_PERCENT:String = "table_height_percent";	// in screen
