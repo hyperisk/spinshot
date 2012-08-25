@@ -32,6 +32,11 @@ package renderer
 		
 		public function onStageResized(fakeEvent:Boolean=false):void
 		{
+			throw new Error("Why?");
+			
+			
+			
+			
 			drawEmptyBackground(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
 			drawTable(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
 		}

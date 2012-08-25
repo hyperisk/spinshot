@@ -70,14 +70,21 @@ package renderer
 				buttonSprite.y = menuMarginTop;
 				if (StageUtil.getSingleton().userInput_.touchPointSupported) {
 					buttonSprite.addEventListener(TouchEvent.TOUCH_BEGIN, function(event:TouchEvent):void {
-						hide(i);
+						var target:Object = event.target;
+						if (target is TextField) {
+							target = target.parent;
+						}
+						hide(target);
 					});
 				} else {
 					buttonSprite.addEventListener(MouseEvent.MOUSE_DOWN, function(event:MouseEvent):void {
-						hide(i);
+						var target:Object = event.target;
+						if (target is TextField) {
+							target = target.parent;
+						}
+						hide(target);
 					});
 				}
-
 			}
 		}
 		
@@ -89,15 +96,17 @@ package renderer
 			}
 		}
 		
-		private function hide(itemSelected:int):void {
+		private function hide(selectedButton:Object):void {
 			StageUtil.getSingleton().removeFromStage(background_);
 			var i:int;
+			var menuIndex:int = -1;
 			for (i = 0; i < NUM_ITEMS; i++) {
 				StageUtil.getSingleton().removeFromStage(buttonSprites_[i]);
+				if (selectedButton == buttonSprites_[i]) {
+					menuIndex = i;
+				}
 			}
-			if (itemSelected >= 0) {
-				menuSelectedCallback_(itemSelected);
-			}
+			menuSelectedCallback_(menuIndex);
 		}
 	}
 }

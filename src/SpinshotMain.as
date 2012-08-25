@@ -1,6 +1,7 @@
 package
 {
 	import core.ImageLoader;
+	import core.LevelManager;
 	import core.StageUtil;
 	
 	import flash.display.Sprite;
@@ -16,7 +17,7 @@ package
 	{
 		private var mainMenuRenderer_:MainMenuRenderer;
 		private var levelMenuRenderer_:LevelMenuRenderer;
-		private var envRenderer_:EnvRenderer;
+		private var levelManager_:LevelManager;
 		
 		public function SpinshotMain()
 		{
@@ -29,7 +30,6 @@ package
 			trace("I SpinshotMain: stage resized");
 			stage.removeEventListener(Event.RESIZE, stageResized);
 			
-			envRenderer_ = new EnvRenderer();
 			StageUtil.getSingleton().init(this.stage);
 			ImageLoader.getSingleton().loadAllImages(onImagesLoaded);
 		}
@@ -37,6 +37,7 @@ package
 		private function onImagesLoaded():void {
 			mainMenuRenderer_ = new MainMenuRenderer(onMainMenuSelected);	// do this after all images are loaded
 			levelMenuRenderer_ = new LevelMenuRenderer(onLevelSelected);
+			levelManager_ = new LevelManager(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
 			mainMenuRenderer_.show();
 		}
 		
@@ -48,8 +49,8 @@ package
 			}
 		}
 		
-		private function onLevelSelected(level:int):void {
-			envRenderer_.show();
+		private function onLevelSelected(levelIndex:int):void {
+			levelManager_.startLevel(levelIndex);
 		}
 	}
 }
