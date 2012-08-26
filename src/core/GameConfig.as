@@ -24,7 +24,7 @@ package core
 			if ( lock == null ) throw new Error("Singleton not allowed bla bla bla");
 			
 			configDict_ = new Dictionary();
-			configDict_[TABLE_HEIGHT_PERCENT] = 30;
+			configDict_[TABLE_HEIGHT_PERCENT] = 40;
 		}
 		
 		public function get(key:String):int {

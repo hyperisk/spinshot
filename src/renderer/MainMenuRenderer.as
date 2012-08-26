@@ -16,7 +16,7 @@ package renderer
 
 	public class MainMenuRenderer
 	{
-		private var background_:Sprite;
+		private var backgroundRenderer_:BackgroundRenderer;
 		private var titleText_:TextField;
 		private var textFormat_:TextFormat;
 		private var startBitmap_:Bitmap;
@@ -28,19 +28,14 @@ package renderer
 		public static const MENU_ITEM_START_GAME:String = "menu_start_game";
 		public static const MENU_ITEM_HELP:String = "menu_help";
 		
-		public function MainMenuRenderer(menuSelectedCallback:Function) {
+		public function MainMenuRenderer(backgroundRenderer:BackgroundRenderer, menuSelectedCallback:Function) {
+			backgroundRenderer_ = backgroundRenderer;
 			menuSelectedCallback_ = menuSelectedCallback;
-			drawMainMenu(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
 		}
 		
 		// at minimum, need to draw something so that onStageResized() is called back
-		public function drawMainMenu(width:int, height:int):void {
-			background_ = new Sprite();
-			background_.graphics.clear();
-			background_.graphics.beginFill(0x556677);
-			background_.graphics.drawRect(0, 0, width, height);
-			background_.graphics.endFill();
-			background_.cacheAsBitmap = true;
+		public function show(width:int, height:int):void {
+			backgroundRenderer_.show(BackgroundRenderer.TYPE_MAIN_MENU, width, height);
 			
 			titleText_ = new TextField();
 
@@ -53,18 +48,21 @@ package renderer
 			titleText_.text = "Ping Pong: Spin Shot !!!";
 			titleText_.x = width / 2 - titleText_.width / 2;
 			titleText_.y = height * 3 / 10;
+			StageUtil.getSingleton().addToStage(titleText_);
 			
 			startBitmap_ = ImageLoader.getSingleton().getBitmap("mainmenu_button_start_72.png");
 			startButton_ = new Sprite();
 			startButton_.addChild(startBitmap_);
 			startButton_.x = width * 4 / 10 - startBitmap_.width / 2;
 			startButton_.y = height * 6 / 10;
+			StageUtil.getSingleton().addToStage(startButton_);
 			
 			helpBitmap_ = ImageLoader.getSingleton().getBitmap("mainmenu_button_help_72.png");
 			helpButton_ = new Sprite();
 			helpButton_.addChild(helpBitmap_);
 			helpButton_.x = width * 6 / 10 - helpBitmap_.width / 2;
 			helpButton_.y = height * 6 / 10;
+			StageUtil.getSingleton().addToStage(helpButton_);
 			
 			if (StageUtil.getSingleton().userInput_.touchPointSupported) {
 				startButton_.addEventListener(TouchEvent.TOUCH_BEGIN, function(event:TouchEvent):void {
@@ -89,15 +87,8 @@ package renderer
 			}
 		}
 		
-		public function show():void {
-			StageUtil.getSingleton().addToStage(background_);
-			StageUtil.getSingleton().addToStage(titleText_);
-			StageUtil.getSingleton().addToStage(startButton_);
-			StageUtil.getSingleton().addToStage(helpButton_);
-		}
-		
 		private function hide(itemSelected:String):void {
-			StageUtil.getSingleton().removeFromStage(background_);
+			backgroundRenderer_.hide();
 			StageUtil.getSingleton().removeFromStage(titleText_);
 			StageUtil.getSingleton().removeFromStage(startButton_);
 			StageUtil.getSingleton().removeFromStage(helpButton_);

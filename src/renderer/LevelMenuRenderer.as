@@ -15,25 +15,20 @@ package renderer
 	{
 		public const NUM_ITEMS:int = 4;
 		
-		private var background_:Sprite;
+		private var backgroundRenderer_:BackgroundRenderer;
 		private var levelNameTexts_:Dictionary;
 		private var buttonSprites_:Dictionary;
 		private var menuSelectedCallback_:Function;
 		
-		public function LevelMenuRenderer(menuSelectedCallback:Function)
+		public function LevelMenuRenderer(backgroundRenderer:BackgroundRenderer, menuSelectedCallback:Function)
 		{
+			backgroundRenderer_ = backgroundRenderer;
 			menuSelectedCallback_ = menuSelectedCallback;
-			drawLevelMenu(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
 		}
 		
-		private function drawLevelMenu(width:int, height:int):void {
-			background_ = new Sprite();
-			background_.graphics.clear();
-			background_.graphics.beginFill(0x557766);
-			background_.graphics.drawRect(0, 0, width, height);
-			background_.graphics.endFill();
-			background_.cacheAsBitmap = true;
-
+		public function show(width:int, height:int):void {
+			backgroundRenderer_.show(BackgroundRenderer.TYPE_LEVEL_MENU, width, height);
+			
 			var menuMarginLeft:int = width * 2 / 10; 
 			var buttonWidth:int =       (width - 2 * menuMarginLeft) / NUM_ITEMS * 6 / 10; 
 			var buttonPaddingLeft:int = (width - 2 * menuMarginLeft) / NUM_ITEMS * 2 / 10;	// (10 - 6) / 2
@@ -86,18 +81,13 @@ package renderer
 					});
 				}
 			}
-		}
-		
-		public function show():void {
-			StageUtil.getSingleton().addToStage(background_);
-			var i:int;
 			for (i = 0; i < NUM_ITEMS; i++) {
 				StageUtil.getSingleton().addToStage(buttonSprites_[i]);
 			}
 		}
 		
 		private function hide(selectedButton:Object):void {
-			StageUtil.getSingleton().removeFromStage(background_);
+			backgroundRenderer_.hide();
 			var i:int;
 			var menuIndex:int = -1;
 			for (i = 0; i < NUM_ITEMS; i++) {

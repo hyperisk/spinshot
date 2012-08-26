@@ -1,13 +1,11 @@
 package core
 {
-	import core.IFrameUpdateObject;
-	
 	import flash.display.DisplayObject;
 	import flash.display.Stage;
 	import flash.display.StageAlign;
 	import flash.display.StageScaleMode;
 	import flash.events.Event;
-	import flash.events.StageOrientationEvent;
+	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
 	// to add debugging message to stage:
@@ -17,7 +15,7 @@ package core
 	{
 		static private var instance_ : StageUtil = null;
 		
-		public var stageWidth_:int;
+		public var stageWidth_:int;	// to check if stage resize event actually changed the size
 		public var stageHeight_:int;
 		private var stage_:Stage;
 		
@@ -27,11 +25,14 @@ package core
 		private var frameNumber_:int;
 		private var lastFrameUpdateTimeMsec_:int;
 		public var fpsAvg_:int;
-		private var lastFpsUpdateTimeMsec_:int;
+		public var curFrameStartTimeMsec_:int;
+		public var lastFpsUpdateTimeMsec_:int;
 		private var numFramesSinceLastUpdate_:int;
 		private var sumElapsedTimesMsec_:Number;
 		
-		private var frameUpdateObjectDict_:Array;
+		private var frameUpdateObjects_:Dictionary;
+		public static const FRAMEUPDATE_KEY_1_SIM:String = "1_sim_";
+		public static const FRAMEUPDATE_KEY_1_RENDER:String = "2_render_";
 		
 		static public function getSingleton() : StageUtil {
 			if ( instance_ == null ) instance_ = new StageUtil( new Lock() );
@@ -40,7 +41,7 @@ package core
 		
 		public function StageUtil( lock : Lock ) {
 			if ( lock == null ) throw new Error("Singleton not allowed bla bla bla");
-			frameUpdateObjectDict_ = new Array();
+			frameUpdateObjects_ = new Dictionary();
 		}		
 		
 		public function init(stage:Stage):void
@@ -65,8 +66,6 @@ package core
 			
 			stage_.align = StageAlign.TOP_LEFT;
 			stage_.scaleMode = StageScaleMode.NO_SCALE;
-			stage_.addEventListener(Event.RESIZE, stageResized);
-			stage_.addEventListener(StageOrientationEvent.ORIENTATION_CHANGE, onStageOrientationChanged);
 			stage_.addEventListener(Event.ENTER_FRAME, onFrameEnter);
 			
 			stage_.addEventListener(Event.ADDED, onObjectAddedToStage);
@@ -92,33 +91,40 @@ package core
 		
 		private function onObjectAddedToStage(event:Event):void {
 			var obj:DisplayObject = event.target as DisplayObject;
-			var stageObj:IStageObject = obj as IStageObject;
-			if (stageObj) {
-				trace("I stageObject added: " + stageObj); 
-			}
+			//trace("I added to stage: " + obj); 
 		}
 		
 		private function onObjectRemovedFromStage(event:Event):void {
 			var obj:DisplayObject = event.target as DisplayObject;
-			var stageObj:IStageObject = obj as IStageObject;
-			if (stageObj) {
-				trace("I stageObject removed: " + stageObj);
-			}
+			//trace("I removed from stage: " + obj); 
 		}
 		
-		public function addFrameUpdateObject(o:IFrameUpdateObject, beforeDisplay:Boolean):void {
-			frameUpdateObjectDict_.push(o);
+		public function addFrameUpdateObject(o:IFrameUpdateObject):void {
+			if (!o.getDictKey()) {
+				throw new Error("frame update object invalid key"); 
+			}
+			if (frameUpdateObjects_.hasOwnProperty(o.getDictKey())) {
+				throw new Error("frame update object already added: " + o.getDictKey()); 
+			}
+			frameUpdateObjects_[o.getDictKey()] = o;
+		}
+		
+		public function removeFrameUpdateObject(o:IFrameUpdateObject):void {
+			if (!frameUpdateObjects_.hasOwnProperty(o.getDictKey())) {
+				throw new Error("frame update object not found: " + o.getDictKey()); 
+			}
+			delete frameUpdateObjects_[o.getDictKey()]
 		}
 		
 		private function onFrameEnter(event:Event):void {
 			frameNumber_++;
-			var curTime:int = getTimer();
-			var frameElapsedTimeMsec:int = curTime - lastFrameUpdateTimeMsec_;
-			var fpsUpdateElapsedMsec:int = curTime - lastFpsUpdateTimeMsec_;
-			updateFrameAllObjects(curTime, frameElapsedTimeMsec / 1000);
+			curFrameStartTimeMsec_ = getTimer();
+			var frameElapsedTimeMsec:int = curFrameStartTimeMsec_ - lastFrameUpdateTimeMsec_;
+			var fpsUpdateElapsedMsec:int = curFrameStartTimeMsec_ - lastFpsUpdateTimeMsec_;
+			updateFrameAllObjects(curFrameStartTimeMsec_, frameElapsedTimeMsec / 1000);
 			
-			if (curTime - lastFpsUpdateTimeMsec_ > 1000) {
-				lastFpsUpdateTimeMsec_ = curTime;
+			if (curFrameStartTimeMsec_ - lastFpsUpdateTimeMsec_ > 1000) {
+				lastFpsUpdateTimeMsec_ = curFrameStartTimeMsec_;
 				fpsAvg_ = numFramesSinceLastUpdate_;
 				infoText_.setText("frame updater", "fps avg: " + fpsAvg_ + ", total elapsed time accuracy: " + (sumElapsedTimesMsec_ / 10) + "%");
 				numFramesSinceLastUpdate_ = 0;
@@ -127,61 +133,21 @@ package core
 				numFramesSinceLastUpdate_++;
 				sumElapsedTimesMsec_ += frameElapsedTimeMsec;
 			}
-			lastFrameUpdateTimeMsec_ = curTime;
+			lastFrameUpdateTimeMsec_ = curFrameStartTimeMsec_;
 			
 			infoText_.onPrepareToRender(event);
 		}
 		
 		private function updateFrameAllObjects(frameStartTimeMsec:int, frameElapsedTime:Number):Boolean {
-			for (var i:int = 0; i < frameUpdateObjectDict_.length; i++) {
-				var o:IFrameUpdateObject = frameUpdateObjectDict_[i];
+			// iterate throw values in dictionary!
+			// compared to foreach (var k:KeyType...)
+			for each (var o:IFrameUpdateObject in frameUpdateObjects_) {
 				if (!o.onFrameUpdate(frameNumber_, frameStartTimeMsec, frameElapsedTime)) {
+					trace("I abort frame update by " + o);
 					return false;
 				}
 			}
-			return handleStagePropertyChanged("frame update", false, function(stageObj:IStageObject):Boolean {
-				return stageObj.onFrameUpdate(frameNumber_, frameStartTimeMsec, frameElapsedTime);
-			});
-		}
-		
-		private function stageResized(event:Event):void {
-			if (!isNaN(stageWidth_) &&
-				(stageWidth_ == stage_.stageWidth) &&
-				(stageHeight_ == stage_.stageHeight)) {
-				trace("I stage resized but same - ignore");
-				return;
-			}
-			trace("I <<<<< stage event RESIZE: " + stage_.stageWidth + " x " + stage_.stageHeight + " <<<<< begin");
-			infoText_.setText("stageUtil", "stageResized to " +  stage_.stageWidth + ", " + stage_.stageHeight);
-			stageWidth_ = stage_.stageWidth;
-			stageHeight_ = stage_.stageHeight;
-			handleStagePropertyChanged("width and height", true, function(stageObj:IStageObject):Boolean {
-				stageObj.onStageResized();
-				return true;
-			});
-			trace("I >>>>> stage event RESIZE");
-		}
-		
-		private function handleStagePropertyChanged(type:String, addTrace:Boolean, func:Function):Boolean {
-			for (var i:int = 0; i < stage_.numChildren; i++) {
-				var childObj:DisplayObject = stage_.getChildAt(i);
-				var stageObj:IStageObject = childObj as IStageObject;
-				if (stageObj) {
-					if (addTrace) {
-						trace("I   callback stageObj " + stageObj);
-					}
-					if (!func(stageObj)) {
-						trace("W   --> abort in handleStagePropertyChanged " + type + ", requested by " + stageObj);
-						return false;
-					}
-				}
-			}
 			return true;
-		}
-		
-		private function onStageOrientationChanged(event:Event):void {
-			trace("I stage orientation changed, stage ori: " + stage_.orientation + 
-				" device ori: " + stage_.deviceOrientation);
 		}
 	}
 }

@@ -1,7 +1,5 @@
 package core
 {
-	import core.IStageObject;
-	
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.text.TextField;
@@ -9,7 +7,7 @@ package core
 	import flash.utils.Dictionary;
 	import flash.utils.getTimer;
 	
-	public class InfoText extends Sprite implements IStageObject
+	public class InfoText extends Sprite implements IFrameUpdateObject
 	{
 		private const NUM_FRAMES_TO_UPDATE:int = 10;
 		private const AUTO_EXPIRE_MSEC:int = 5 * 1000;
@@ -52,6 +50,7 @@ package core
 			}
 			if (!parent) {
 				StageUtil.getSingleton().addToStage(this);
+				StageUtil.getSingleton().addFrameUpdateObject(this);
 			}
 		}
 		
@@ -61,6 +60,7 @@ package core
 			}
 			if (parent) {
 				StageUtil.getSingleton().removeFromStage(this);
+				StageUtil.getSingleton().(this, true);
 			}
 		}
 		
@@ -82,10 +82,6 @@ package core
 			} else {
 				showAll();
 			}
-		}
-		
-		// interface impl
-		public function onStageResized(fakeEvent:Boolean=false): void {
 		}
 		
 		// interface impl
@@ -117,6 +113,11 @@ package core
 			
 			lastFrameNumberUpdated_ = frameNumber;
 			return true;
+		}
+		
+		// interface impl
+		public function getDictKey():String {
+			return StageUtil.FRAMEUPDATE_KEY_1_RENDER + "InfoText";
 		}
 		
 		private function rearrangeAll():void {

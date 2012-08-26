@@ -13,7 +13,9 @@ package core
 		private static var instance_ : ImageLoader = null;
 		private static const imageNames_:Array = [
 			"mainmenu_button_start_72.png",
-			"mainmenu_button_help_72.png"
+			"mainmenu_button_help_72.png",
+			"level_button_replay_72.png",
+			"level_button_quit_72.png"
 		];
 		private static const IMAGE_DIR:String = "assets";
 		private var appDirFile_:File = File.applicationDirectory;

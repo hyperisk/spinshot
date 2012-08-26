@@ -6,6 +6,7 @@ package level
 	{
 		function init(lm:LevelManager):void;
 		function startPlay():void;
-		function endPlay():void;
+		function restart():void;
+		function cleanUp():void;
 	}
 }

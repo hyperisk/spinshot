@@ -1,61 +1,29 @@
 package renderer
 {
 	import core.GameConfig;
-	import core.IStageObject;
+	import core.IFrameUpdateObject;
 	import core.StageUtil;
 	
 	import flash.display.GradientType;
 	import flash.display.Sprite;
 	import flash.geom.Matrix;
 	
-	public class EnvRenderer implements IStageObject
+	public class TableRenderer implements IFrameUpdateObject
 	{
-		private var background_:Sprite;
 		private var table_:Sprite;
 		private var tableShadow_:Sprite;
 		
-		public function EnvRenderer()
+		public function TableRenderer()
 		{
-			background_ = new Sprite();
 			tableShadow_ = new Sprite();
 			table_ = new Sprite();
+			StageUtil.getSingleton().addFrameUpdateObject(this);
 		}
 		
 		public function show():void {
-			StageUtil.getSingleton().addToStage(background_);
-			drawEmptyBackground(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
-			
 			StageUtil.getSingleton().addToStage(tableShadow_);
 			StageUtil.getSingleton().addToStage(table_);
 			drawTable(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
-		}
-		
-		public function onStageResized(fakeEvent:Boolean=false):void
-		{
-			throw new Error("Why?");
-			
-			
-			
-			
-			drawEmptyBackground(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
-			drawTable(StageUtil.getSingleton().stageWidth_, StageUtil.getSingleton().stageHeight_);
-		}
-		
-		// at minimum, need to draw something so that onStageResized() is called back
-		private function drawEmptyBackground(width:int, height:int):void {
-			var colors:Array = [0x555555, 0x555555, 0xDDDDDD];
-			var alphas:Array = [1, 1, 1];
-			var ratios:Array = [0, 
-				255 * (100 - GameConfig.getSingleton().get(GameConfig.TABLE_HEIGHT_PERCENT)) / 100, 
-				255];
-			var mat:Matrix = new Matrix();
-			mat.createGradientBox(width, height, Math.PI/2);
-			background_.graphics.clear();
-			background_.graphics.beginGradientFill(GradientType.LINEAR, colors, alphas, ratios, mat);
-			background_.graphics.drawRect(0, 0, width, height);
-			background_.graphics.endFill();
-			background_.cacheAsBitmap = true;
-			trace("I  add background sprite, width: " + background_.width + ", height: " + background_.height);
 		}
 		
 		private function drawTable(width:int, height:int):void {
@@ -66,8 +34,8 @@ package renderer
 			var tableLegHeight:int = tableTopWidth * 76 / 274;
 			var netHeight:int = tableTopWidth * 15 / 274;
 
-			var shadowWidth:int = tableTopWidth * 18 / 10;
-			var shadowHeight:int = tableTopWidth * 2 / 10;
+			var shadowWidth:int = width * 2;
+			var shadowHeight:int = height - tableTopPosY - tableLegHeight;
 			var colors:Array = [0x555555, 0x777777, 0xAAAAAA];
 			var alphas:Array = [1, 1, 0];
 			var ratios:Array = [0, 180, 255];
@@ -78,7 +46,7 @@ package renderer
 			tableShadow_.graphics.drawEllipse(0, 0, shadowWidth, shadowHeight);
 			tableShadow_.graphics.endFill();
 			tableShadow_.x = width / 2 - shadowWidth / 2;
-			tableShadow_.y = height - tableTopPosY * 2 / 10;
+			tableShadow_.y = height - shadowHeight ;
 			tableShadow_.cacheAsBitmap = true;
 
 			table_.graphics.clear();
@@ -104,9 +72,20 @@ package renderer
 			table_.cacheAsBitmap = true;
 		}
 		
+		public function hide():void {
+			StageUtil.getSingleton().removeFromStage(tableShadow_);
+			StageUtil.getSingleton().removeFromStage(table_);
+		}
+		
+		// interface impl
 		public function onFrameUpdate(frameNumber:int, frameStartTimeMsec:int, frameElapsedTime:Number):Boolean
 		{
 			return true;
 		}
+		
+		// interface impl
+		public function getDictKey():String {
+			return StageUtil.FRAMEUPDATE_KEY_1_RENDER + "TableRenderer";
+		}		
 	}
 }
